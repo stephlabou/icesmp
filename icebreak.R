@@ -234,22 +234,10 @@ print(varsi)
 print(summary(modeli))
 print(anova(modeli))
 
-#graphics.off()
-#t.test<-t.test(data=longi,val~season)
-#if(t.test$p.value<=0.075){
-#sigvars<-c(sigvars,varsi)
-#}
+#
 
 }
 
-#print(sigvars)
-# [1] "averadiation"    "avesecchidepth"  "avetotnitro"     "avetotdissnitro"
-# [5] "avechla"         "avephytomass"    "avephytocount"   "avezoopcount"   
-# [9] "maxtotphos"      "maxtotnitro"     "maxtotdissnitro" "maxchla"        
-#[13] "maxphytomass"    "maxphytocount"   "maxzoopcount"    "propchloro"     
-#[17] "propcrypto"      "propcyano"       "propdiatom"      "propotherzoop"  
-#[21] "cvsecchidepth"   "cvtotphos"       "cvtotnitro"      "cvchla"         
-#[25] "cvphytomass"     "cvphytocount"    "cvzoopcount"    
 
 
 
