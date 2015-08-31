@@ -1,3 +1,13 @@
+#Script for comparative analysis of iceon/iceoff data, by SMP who holds no responsibility
+#Notes...
+#The script aggregates all data by variable, lake, and season, meaning one ice on value per variable per lake, and once ice off
+#-->Lakes and variables lacking iceon data are discarded
+#-->Variables with data for fewer than x lakes are discarded
+#The graphical outputs are... 
+#1) paired iceoff vs. iceon boxplots, by variable (bp.tif)
+#2) scatterplots of iceon measurements vs. dissolved n:p ratio, by variable (np.covar.tif)
+#Unfinished items as of 2015 Aug 31... 
+#-->mixed models (lmer?) using lakename and/or region as random variables, and also year if the full under ice data set is used
 
 #clear all variables in workspace and close all open windows
 rm(list = ls()) 
@@ -9,17 +19,14 @@ library(reshape);library(ggplot2)
 library(zoo)
 #library(nlme)
 library(lme4)
-#library(dplyr)
 library(plyr)
 library(gridExtra)
-
 ###################################
 #set directories (adjust to machine)
-base_dir<-paste(c("C:/Users/Steve/Desktop/Sandboxes/2015Aug27"), collapse="")
+base_dir<-paste(c("C:/Users/Steve/Desktop/Sandboxes/2015Aug31"), collapse="")
 #data_dir<-paste(c(base_dir,"/Data"),collapse="")
 data_dir<-base_dir
 setwd(base_dir)
-
 ###############################
 #read in data
 setwd(data_dir)
@@ -27,20 +34,12 @@ full_under_ice.df<-read.csv("full_under_ice_data_20150613.csv")
 full_under_ice.df
 full_under_ice.df$iceonTF<-0
 full_under_ice.df$iceonTF[which(full_under_ice.df$season=="iceon")]<-1
-full_under_ice.df$WG<--1
-full_under_ice.df$WG[which(full_under_ice.df$season=="iceoff")]<-1
+#full_under_ice.df$WG<--1
+#full_under_ice.df$WG[which(full_under_ice.df$season=="iceoff")]<-1
 names(full_under_ice.df)
-###########################
-#relict code
-#aggr<-aggregate(full_under_ice.df[,1],by=list(full_under_ice.df$lakename),FUN="length")
-#aggr
-#lakenames_nlim<-aggr[,1][which(aggr[,2]>=6)]
 ##############################
 #drop Lake Muddus which only has one row of data point (ice off, with no corresponding ice on)
 full_under_ice.df<-subset(full_under_ice.df,full_under_ice.df$lakename!="Lake Muddus")
-#relict code
-#nlim_under_ice.df<-subset(full_under_ice.df,full_under_ice.df$lakename %in% as.character(lakenames_nlim))
-
 #################################
 #lag functions, backward and forward
 bw1<-function(x)c(NA,x[1:(length(x)-1)])
@@ -49,8 +48,6 @@ fw1<-function(x)c(x[2:(length(x))],NA)
 fw2<-function(x)c(x[3:(length(x))],NA,NA)
 ######################################
 #choose variables
-#lakenames<-unique(full_under_ice.df$lakename)
-#vars<-c("avechla","maxchla")
 vars<-names(full_under_ice.df)[grep("ave",names(full_under_ice.df))]
 #vars2<-names(full_under_ice.df)[grep("max",names(full_under_ice.df))]
 vars3<-names(full_under_ice.df)[grep("prop",names(full_under_ice.df))]
@@ -63,7 +60,6 @@ vars<-vars[-which(vars %in% c("avebenalgalmass","maxbenalgalmass","cvbenalgalmas
 #convert data to long format and restrict to key variables
 id_cols<-1:38
 long.df<-melt(full_under_ice.df,id.vars=c(names(full_under_ice.df)[id_cols]))
-#long.means.df<-ddply(long.df,.(lakename,season,lakemaxdepth,variable,value),summarise,mean(value,na.rm=TRUE))
 long.df<-long.df[which(is.na(long.df$value)==FALSE),]
 long.df<-long.df[-grep("cv",long.df$variable),]
 long.df<-long.df[-grep("max",long.df$variable),]
@@ -74,11 +70,6 @@ varlake.iceoff<-unique(long.df[which(long.df$season=="iceoff"),which(names(long.
 varlake<-rbind(varlake.iceon,varlake.iceoff)
 varlake.WG<-varlake[which(duplicated(do.call(paste,varlake))),]
 long.df<-subset(long.df,do.call(paste,data.frame(long.df$lakename,long.df$variable)) %in% do.call(paste,varlake.WG))
-
-#purpose of next few lines?? Relict code?
-varlake.iceon<-long.df[which(long.df$season=="iceon"),which(names(long.df) %in% c("variable","lakename"))]
-varlake.iceoff<-long.df[which(long.df$season=="iceoff"),which(names(long.df) %in% c("variable","lakename"))]
-varlake.merge<-merge(varlake.iceoff,varlake.iceon,by=c("variable","lakename"))
 
 #add variable prefixes for easier sorting in multi-panel plots
 whichnames.chem<-c(grep(paste(c("phos","nitro","doc","suva"),collapse="|"),long.df$variable))
@@ -102,14 +93,13 @@ use_names<-nlakes[which,1]
 use_names
 
 #plot "grand" boxplots
-windows()
+tiff(file=paste("bp.tif",sep=""),height=8.5,width=13,units="in",res=360)
 bplot <- ggplot(subset(long.means.df,as.character(long.means.df$varname) %in% use_names), aes(factor(season), value,colour=abs(stationlat)))
 bplot<-bplot + geom_boxplot()+geom_point()+geom_jitter(position = position_jitter(height=0,width = 0.1))+ylab("value")
-bplot<-bplot+theme(strip.text.x=element_text(size=9))+xlab("")+scale_colour_continuous(name="Lat(abs)")
-#+theme(legend.position="none")
+bplot<-bplot+theme(strip.text.x=element_text(size=8.5))+xlab("")+scale_colour_continuous(name="abs(Lat.)")
 bplot<-bplot+facet_wrap(~varname,scales="free",ncol=7)
 bplot
-
+dev.off()
 ########################################
 #reformat long data so that n:p ratio is a covariate in every row
 np.iceon.df<- cast(subset(long.means.df,long.means.df$season=="iceon"),lakename~variable,fun.aggregate="mean")
@@ -123,28 +113,21 @@ which<-which(nlakes[,3]>6 & !as.character(nlakes[,1]) %in% c("WG","iceonTF"))
 use_names<-nlakes[which,1]
 
 #plot iceon phys, chem, bio data against n:p ratio
-windows()
+tiff(file=paste("np.covar.tif",sep=""),height=8.5,width=11,units="in",res=360)
 plot <- ggplot(subset(np.iceon.df,as.character(np.iceon.df$varname) %in% use_names & np.iceon.df$np>0), aes(x=np, value,colour=abs(stationlat)))
 plot<-plot +geom_point()+ylab("value")
-plot<-plot+theme(strip.text.x=element_text(size=9))+xlab("")+scale_colour_continuous(name="Lat(abs)")
-#+theme(legend.position="none")
+plot<-plot+theme(strip.text.x=element_text(size=10))+xlab("Dissolved n:p (molar ratio)")+scale_colour_continuous(name="abs(Lat.)")
 plot<-plot+facet_wrap(~varname,scales="free_y",ncol=5)
 plot
-
-#relict code?
-windows()
-plot <- ggplot(subset(np.iceon.df,as.character(np.iceon.df$varname) %in% use_names), aes(x=lakemaxdepth, value,colour=abs(stationlat)))
-plot<-plot +geom_point()+ylab("value")
-plot<-plot+theme(strip.text.x=element_text(size=9))+xlab("")+scale_colour_continuous(name="Lat(abs)")
-#+theme(legend.position="none")
-plot<-plot+facet_wrap(~varname,scales="free",ncol=7)
-plot
-
+dev.off()
 ############################################
 ####################################
 #do variable by variable stats
 #warning: code below here is very in finished and contains relect sections
 
+#not run if do=0
+do<-0
+if(do==1){
 vars_use<-c()
 for(i in 1:length(vars)){
 vari<-vars[i]
@@ -241,9 +224,5 @@ print(summary(modeli))
 print(anova(modeli))
 
 #
-
 }
-
-
-
-
+}
