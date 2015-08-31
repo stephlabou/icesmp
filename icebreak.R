@@ -95,7 +95,7 @@ np.iceon.df<-merge(subset(long.means.df,long.means.df$season=="iceon"),np.iceon.
 ############################################
 #do "grand" boxplots
 #choose variables that have ice on/ice off measurements for more than x lakes
-x<-20
+x<-15
 nlakes<-aggregate(long.means.df$value,by=list(long.means.df$varname,long.means.df$season),FUN="length")
 which<-which(nlakes[,3]>x & !as.character(nlakes[,1]) %in% c("WG","iceonTF"))
 use_names<-nlakes[which,1]
