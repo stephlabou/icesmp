@@ -105,7 +105,7 @@ tiff(file=paste("bp.tif",sep=""),height=8.5,width=13,units="in",res=360)
 bplot <- ggplot(subset(long.means.df,as.character(long.means.df$varname) %in% use_names), aes(factor(season), value,colour=abs(stationlat)))
 bplot<-bplot + geom_boxplot(outlier.size=0.5)+geom_point(size = 0.1)+geom_jitter(position = position_jitter(height=0,width = 0.1))+ylab("value")
 bplot<-bplot+theme(strip.text.x=element_text(size=8.5))+xlab("")+scale_colour_gradient(low="green",high="blue",name="abs(Lat.)")
-bplot<-bplot+facet_wrap(~varname,scales="free",ncol=7)
+bplot<-bplot+facet_wrap(~varname,scales="free",ncol=6)
 bplot
 dev.off()
 ########################################
