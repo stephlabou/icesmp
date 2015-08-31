@@ -95,13 +95,13 @@ np.iceon.df<-merge(subset(long.means.df,long.means.df$season=="iceon"),np.iceon.
 ############################################
 #do "grand" boxplots
 #choose variables that have ice on/ice off measurements for more than x lakes
-x<-15
+x<-12
 nlakes<-aggregate(long.means.df$value,by=list(long.means.df$varname,long.means.df$season),FUN="length")
 which<-which(nlakes[,3]>x & !as.character(nlakes[,1]) %in% c("WG","iceonTF"))
 use_names<-nlakes[which,1]
 use_names
 
-tiff(file=paste("bp.tif",sep=""),height=8.5,width=13,units="in",res=360)
+tiff(file=paste("bp.tif",sep=""),height=9,width=12,units="in",res=360)
 bplot <- ggplot(subset(long.means.df,as.character(long.means.df$varname) %in% use_names), aes(factor(season), value,colour=abs(stationlat)))
 bplot<-bplot + geom_boxplot(outlier.size=0.5)+geom_point(size = 0.1)+geom_jitter(position = position_jitter(height=0,width = 0.1))+ylab("value")
 bplot<-bplot+theme(strip.text.x=element_text(size=8.5))+xlab("")+scale_colour_gradient(low="green",high="blue",name="abs(Lat.)")
