@@ -8,6 +8,7 @@
 #2) scatterplots of iceon measurements vs. dissolved n:p ratio, by variable (np.covar.tif)
 #Unfinished items as of 2015 Aug 31... 
 #-->mixed models (lmer?) using lakename and/or region as random variables, and also year if the full under ice data set is used
+#-->analysis of season-to-season carryover and year-to-year carryover (time lags)
 
 #clear all variables in workspace and close all open windows
 rm(list = ls()) 
@@ -42,6 +43,7 @@ names(full_under_ice.df)
 full_under_ice.df<-subset(full_under_ice.df,full_under_ice.df$lakename!="Lake Muddus")
 #################################
 #lag functions, backward and forward
+#functions could be useful for examining season-to-season carryover and year-to-year carryover
 bw1<-function(x)c(NA,x[1:(length(x)-1)])
 bw2<-function(x)c(NA,NA,x[1:(length(x)-2)])
 fw1<-function(x)c(x[2:(length(x))],NA)
@@ -130,6 +132,7 @@ dev.off()
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #do stats, variable by variable
+#do acf/pacf plots
 
 #not run if do=0
 do<-0
