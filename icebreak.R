@@ -47,7 +47,7 @@ bw2<-function(x)c(NA,NA,x[1:(length(x)-2)])
 fw1<-function(x)c(x[2:(length(x))],NA)
 fw2<-function(x)c(x[3:(length(x))],NA,NA)
 ######################################
-#choose variables
+#choose variable groups
 vars<-names(full_under_ice.df)[grep("ave",names(full_under_ice.df))]
 #vars2<-names(full_under_ice.df)[grep("max",names(full_under_ice.df))]
 vars3<-names(full_under_ice.df)[grep("prop",names(full_under_ice.df))]
@@ -57,21 +57,21 @@ vars<-unique(c(vars,vars3))
 vars<-vars[-which(vars %in% c("avebenalgalmass","maxbenalgalmass","cvbenalgalmass","avebenchla","maxbenchla","cvbenchla"))]
 #vars<-vars[-which(vars %in% c("avebenchla"))]
 ###########################################
-#convert data to long format and restrict to key variables
-id_cols<-1:38
+#convert data to long format
+id_cols<-1:38 #these are the columns to be kept in long format (lake name, region, water depth, etc)
 long.df<-melt(full_under_ice.df,id.vars=c(names(full_under_ice.df)[id_cols]))
 long.df<-long.df[which(is.na(long.df$value)==FALSE),]
-long.df<-long.df[-grep("cv",long.df$variable),]
-long.df<-long.df[-grep("max",long.df$variable),]
 
-#restrict to variables that were measured during both ice on and ice off at a given lake
+#restrict long data to chosen variables
+long.df<-long.df[which(as.character(long.df$variable) %in% vars),]
+#restrict long data to variables measured during both iceon and iceoff at a given lake
 varlake.iceon<-unique(long.df[which(long.df$season=="iceon"),which(names(long.df) %in% c("variable","lakename"))])
 varlake.iceoff<-unique(long.df[which(long.df$season=="iceoff"),which(names(long.df) %in% c("variable","lakename"))])
 varlake<-rbind(varlake.iceon,varlake.iceoff)
 varlake.WG<-varlake[which(duplicated(do.call(paste,varlake))),]
 long.df<-subset(long.df,do.call(paste,data.frame(long.df$lakename,long.df$variable)) %in% do.call(paste,varlake.WG))
 
-#add variable prefixes for easier sorting in multi-panel plots
+#add variable prefixes for easier sorting of the multi-panel plots
 whichnames.chem<-c(grep(paste(c("phos","nitro","doc","suva"),collapse="|"),long.df$variable))
 whichnames.bio<-c(grep(paste(c("chla","phyt","zoop","prop","ben"),collapse="|"),long.df$variable))
 whichnames.phys<-c(grep(paste(c("secchi","temp","radiation"),collapse="|"),long.df$variable))
@@ -86,13 +86,21 @@ long.df$varname[whichnames.cladocera]<-paste("3bio.","propothercladoc",sep="")
 long.means.df<-aggregate(as.numeric(value)~lakename+season+lakeregloc+lakecountry+lakearea+lakemaxdepth+stationlat+variable+varname,data=long.df,FUN="mean")
 names(long.means.df)[which(names(long.means.df) =="as.numeric(value)")]<-"value"
 
-#choose variables that have ice on/ice off measurements for more than 10 lakes 
+#create another long data frame with n:p ratio as a covariate in every row
+np.iceon.df<- cast(subset(long.means.df,long.means.df$season=="iceon"),lakename~variable,fun.aggregate="mean")
+np.iceon.df$np<-(np.iceon.df$avetotdissnitro/14)/(np.iceon.df$avetotdissphos/31)
+np.iceon.df<-data.frame(lakename=np.iceon.df$lakename,np=np.iceon.df$np)
+np.iceon.df<-merge(subset(long.means.df,long.means.df$season=="iceon"),np.iceon.df,by=c("lakename"))
+
+############################################
+#do "grand" boxplots
+#choose variables that have ice on/ice off measurements for more than x lakes
+x<-10
 nlakes<-aggregate(long.means.df$value,by=list(long.means.df$varname,long.means.df$season),FUN="length")
-which<-which(nlakes[,3]>10 & !as.character(nlakes[,1]) %in% c("WG","iceonTF"))
+which<-which(nlakes[,3]>x & !as.character(nlakes[,1]) %in% c("WG","iceonTF"))
 use_names<-nlakes[which,1]
 use_names
 
-#plot "grand" boxplots
 tiff(file=paste("bp.tif",sep=""),height=8.5,width=13,units="in",res=360)
 bplot <- ggplot(subset(long.means.df,as.character(long.means.df$varname) %in% use_names), aes(factor(season), value,colour=abs(stationlat)))
 bplot<-bplot + geom_boxplot()+geom_point()+geom_jitter(position = position_jitter(height=0,width = 0.1))+ylab("value")
@@ -101,18 +109,14 @@ bplot<-bplot+facet_wrap(~varname,scales="free",ncol=7)
 bplot
 dev.off()
 ########################################
-#reformat long data so that n:p ratio is a covariate in every row
-np.iceon.df<- cast(subset(long.means.df,long.means.df$season=="iceon"),lakename~variable,fun.aggregate="mean")
-np.iceon.df$np<-(np.iceon.df$avetotdissnitro/14)/(np.iceon.df$avetotdissphos/31)
-np.iceon.df<-data.frame(lakename=np.iceon.df$lakename,np=np.iceon.df$np)
-np.iceon.df<-merge(subset(long.means.df,long.means.df$season=="iceon"),np.iceon.df,by=c("lakename"))
+#do scatter plots of iceon phys, chem, bio data against n:p ratio
 
-#limit iceon data to variables having more than x lakes
+#choose variables that have ice on/ice off measurements for more than x lakes
+x<-6
 nlakes <-aggregate(long.means.df$value,by=list(long.means.df$varname,long.means.df$season),FUN="length")
-which<-which(nlakes[,3]>6 & !as.character(nlakes[,1]) %in% c("WG","iceonTF"))
+which<-which(nlakes[,3]>x & !as.character(nlakes[,1]) %in% c("WG","iceonTF"))
 use_names<-nlakes[which,1]
 
-#plot iceon phys, chem, bio data against n:p ratio
 tiff(file=paste("np.covar.tif",sep=""),height=8.5,width=11,units="in",res=360)
 plot <- ggplot(subset(np.iceon.df,as.character(np.iceon.df$varname) %in% use_names & np.iceon.df$np>0), aes(x=np, value,colour=abs(stationlat)))
 plot<-plot +geom_point()+ylab("value")
@@ -122,8 +126,8 @@ plot
 dev.off()
 ############################################
 ####################################
-#do variable by variable stats
-#warning: code below here is very in finished and contains relect sections
+#do stats, variable by variable
+#warning: code below here does not work yet, unfinished
 
 #not run if do=0
 do<-0
