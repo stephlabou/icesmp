@@ -125,9 +125,11 @@ plot<-plot+facet_wrap(~varname,scales="free_y",ncol=5)
 plot
 dev.off()
 ############################################
-####################################
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#!!!UNFINISHED CODE BELOW THIS LINE!!!
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #do stats, variable by variable
-#warning: code below here does not work yet, unfinished
 
 #not run if do=0
 do<-0
