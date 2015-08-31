@@ -50,17 +50,15 @@ fw1<-function(x)c(x[2:(length(x))],NA)
 fw2<-function(x)c(x[3:(length(x))],NA,NA)
 ######################################
 #choose variable groups
-vars<-names(full_under_ice.df)[grep("ave",names(full_under_ice.df))]
-#vars2<-names(full_under_ice.df)[grep("max",names(full_under_ice.df))]
-vars3<-names(full_under_ice.df)[grep("prop",names(full_under_ice.df))]
-#vars4<-names(full_under_ice.df)[grep("cv",names(full_under_ice.df))]
-#vars<-unique(c(vars,vars2,vars3,vars4))
-vars<-unique(c(vars,vars3))
+id_cols<-1:38 #these are the columns to be kept in long format (lake name, region, water depth, etc)
+#vars<-names(full_under_ice.df)[grep("ave",names(full_under_ice.df))]
+vars<-names(full_under_ice.df)[-id_cols][-grep("max",names(full_under_ice.df)[-id_cols])]
+vars<-vars[-grep("cv",vars)]
 vars<-vars[-which(vars %in% c("avebenalgalmass","maxbenalgalmass","cvbenalgalmass","avebenchla","maxbenchla","cvbenchla"))]
-#vars<-vars[-which(vars %in% c("avebenchla"))]
+vars<-vars[-grep("narrat",vars)]
+vars<-vars[-which(vars %in% c("file","iceonTF"))]
 ###########################################
 #convert data to long format
-id_cols<-1:38 #these are the columns to be kept in long format (lake name, region, water depth, etc)
 long.df<-melt(full_under_ice.df,id.vars=c(names(full_under_ice.df)[id_cols]))
 long.df<-long.df[which(is.na(long.df$value)==FALSE),]
 
@@ -107,7 +105,7 @@ tiff(file=paste("bp.tif",sep=""),height=8.5,width=13,units="in",res=360)
 bplot <- ggplot(subset(long.means.df,as.character(long.means.df$varname) %in% use_names), aes(factor(season), value,colour=abs(stationlat)))
 bplot<-bplot + geom_boxplot()+geom_point()+geom_jitter(position = position_jitter(height=0,width = 0.1))+ylab("value")
 bplot<-bplot+theme(strip.text.x=element_text(size=8.5))+xlab("")+scale_colour_continuous(name="abs(Lat.)")
-bplot<-bplot+facet_wrap(~varname,scales="free",ncol=7)
+bplot<-bplot+facet_wrap(~varname,scales="free",ncol=7)+scale_colour_gradientn(colours=rainbow(4))
 bplot
 dev.off()
 ########################################
@@ -123,7 +121,7 @@ tiff(file=paste("np.covar.tif",sep=""),height=8.5,width=11,units="in",res=360)
 plot <- ggplot(subset(np.iceon.df,as.character(np.iceon.df$varname) %in% use_names & np.iceon.df$np>0), aes(x=np, value,colour=abs(stationlat)))
 plot<-plot +geom_point()+ylab("value")
 plot<-plot+theme(strip.text.x=element_text(size=10))+xlab("Dissolved n:p (molar ratio)")+scale_colour_continuous(name="abs(Lat.)")
-plot<-plot+facet_wrap(~varname,scales="free_y",ncol=5)
+plot<-plot+facet_wrap(~varname,scales="free_y",ncol=5)+scale_colour_gradientn(colours=rainbow(4))
 plot
 dev.off()
 ############################################
