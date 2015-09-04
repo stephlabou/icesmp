@@ -89,7 +89,7 @@ diceoff2<-diff(as.numeric(data2$iceoff))
 #test the hypothesis that ice off follows iceon
 grangertest(diceoff2~diceon1,order=2)
 
-#SIGNIFICANT for Lake Superior Chl a (H: ICEOFF CONDITION FOLLOWS ICEON CONDITION)
+#SIGNIFICANT for Lake Superior Chl a (If signif then ICEOFF CONDITION FOLLOWS ICEON CONDITION)
 #Granger causality test
 
 #Model 1: diceoff2 ~ Lags(diceoff2, 1:2) + Lags(diceon1, 1:2)
@@ -110,7 +110,7 @@ diceon2<-diff(as.numeric(data3$iceon))
 
 grangertest(diceon2~diceoff1,order=2)
 
-#OTHER WAY AROUND (H:ICEON CONDITION FOLLOWS ICEOFF CONDITION) IS NOT SIGNIF for Lake Superior Chl a
+#OTHER WAY AROUND (If signif then ICEON CONDITION FOLLOWS ICEOFF CONDITION) IS NOT SIGNIF for Lake Superior Chl a
 #Granger causality test
 #
 #Model 1: diceon2 ~ Lags(diceon2, 1:2) + Lags(diceoff1, 1:2)
