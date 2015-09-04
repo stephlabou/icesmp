@@ -9,10 +9,12 @@ library(lme4)
 library(plyr)
 library(gridExtra)
 library(reshape2)
+library(lmtest)
 
 ###################################
 #set directories
-base_dir<-paste(c("C:/Users/Steve/Desktop/Sandboxes/2015Aug27"), collapse="")
+#adjust as needed
+base_dir<-paste(c("C:/Users/Steve/Desktop/Sandboxes/2015Sep3"), collapse="")
 #data_dir<-paste(c(base_dir,"/Data"),collapse="")
 data_dir<-base_dir
 setwd(base_dir)
@@ -36,13 +38,6 @@ lakenames_nlim<-aggr[,1][which(aggr[,2]>=6)]
 #drop Lake Muddus which only has one row of data point (ice off, with no corresponding ice on)
 full_under_ice.df<-subset(full_under_ice.df,full_under_ice.df$lakename!="Lake Muddus")
 nlim_under_ice.df<-subset(full_under_ice.df,full_under_ice.df$lakename %in% as.character(lakenames_nlim))
-
-#################################
-#lag function
-bw1<-function(x)c(NA,x[1:(length(x)-1)])
-bw2<-function(x)c(NA,NA,x[1:(length(x)-2)])
-fw1<-function(x)c(x[2:(length(x))],NA)
-fw2<-function(x)c(x[3:(length(x))],NA,NA)
 
 ######################################
 lakenames<-unique(full_under_ice.df$lakename)
