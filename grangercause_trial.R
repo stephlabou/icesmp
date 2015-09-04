@@ -1,3 +1,5 @@
+#script uses Granger Causality test to answer the question, which season follows which? Using one lake and variable at a time
+#see bottom for granger cause part, top sections are just aggregation/cleaning steps
 
 #clear all variables in workspace and close all open windows
 rm(list = ls()) 
