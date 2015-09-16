@@ -38,6 +38,7 @@ unique(data.frame(taxanames$order_,taxanames$family))
 #merge zoop data with taxanames
 zoop<-merge(zoop,taxanames,by.x="species_code",by.y="ntl_taxon_code")#,all=TRUE)
 
+#generate lake-date combos for each zoopgroup, used to add proportion=0 when not counted in sample
 lakedates<-unique(data.frame(zoop[,c("lakeid","sample_date")]))
 groups<-unique(taxanames$zoopgroup)
 for(i in 1:length(groups)){
@@ -49,6 +50,7 @@ lakedategroups<-rbind(lakedategroups,datai)
 }
 }
 
+#more steps to add zero data
 zeroes<-lakedategroups
 zeroes_merge<-merge(zeroes,zoop,by=c("lakeid","sample_date","zoopgroup"),all=TRUE)
 zeroes_merge$number_per_liter<-zeroes_merge$number_per_liter
